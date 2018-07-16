@@ -4,13 +4,26 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
+    using System.Linq;
     using Microsoft.AspNetCore.Mvc;
     using Olive;
+    using System.Net;
+    using System.Net.Sockets;
     using Olive.Entities;
     using Olive.Mvc;
 
     public class SharedActionsController : BaseController
     {
+        [Route("healthcheck")]
+        public async Task<ActionResult> HealthCheck()
+        {
+            var myIps = Dns.GetHostEntry(Dns.GetHostName()).AddressList
+                .Where(x => x.AddressFamily == AddressFamily.InterNetwork)
+                .Select(x => x.ToString()).ToString(" | ");
+
+            return Ok($"Health check @ {LocalTime.Now.ToLongTimeString()}, version = {Config.Get("App.Resource.Version")} in env:{Context.Current.Environment().EnvironmentName}, local IP:" + myIps);
+        }
+    
         [Route("error")]
         public ActionResult Error() => View("error");
 
